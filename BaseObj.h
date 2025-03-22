@@ -1,6 +1,4 @@
-#ifndef BASE_OBJ_H_
-#define BASE_OBJ_H_
-
+#pragma once
 #include "CommonFunc.h"
 
 class BaseObj
@@ -21,4 +19,3 @@ protected:
     SDL_Texture* p_obj;
     SDL_Rect rect;
 };
-#endif // BASE_OBJ_H_

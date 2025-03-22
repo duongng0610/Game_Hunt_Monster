@@ -1,5 +1,6 @@
 #include "CommonFunc.h"
-#include "BaseObj.cpp"
+#include "BaseObj.h"
+#include "map.h"
 
 BaseObj g_background;
 
@@ -59,12 +60,18 @@ void close()
 int main(int argc, char* argv[])
 {
     if(InitData() == false) {
+        cout << "Can not load data";
         return -1;
     }
 
     if(LoadBackGround() == false) {
+        cout << "Can not load backgroud";
         return -1;
     }
+
+    GameMap game_map;
+    game_map.LoadMap("map/map01.dat");
+    game_map.LoadTiles(g_screen);
 
     bool running = true;
     while(running) {
@@ -79,6 +86,8 @@ int main(int argc, char* argv[])
         SDL_RenderClear(g_screen);
 
         g_background.Render(g_screen, NULL);
+        game_map.DrawMap(g_screen);
+
         SDL_RenderPresent(g_screen);
     }
 
