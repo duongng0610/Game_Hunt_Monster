@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 #include <windows.h>
 #include <SDL.h>
@@ -43,3 +44,11 @@ struct Map {
     char* file_name;
 };
 
+struct Input
+{
+    int left;
+    int right;
+    int up;
+    int down;
+    int jump;
+};

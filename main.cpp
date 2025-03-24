@@ -1,6 +1,7 @@
 #include "CommonFunc.h"
 #include "BaseObj.h"
 #include "map.h"
+#include "MainObj.h"
 
 BaseObj g_background;
 
@@ -73,12 +74,17 @@ int main(int argc, char* argv[])
     game_map.LoadMap("map/map01.dat");
     game_map.LoadTiles(g_screen);
 
+    MainObj p_player;
+    p_player.LoadImg("img//player_right.png", g_screen);
+    p_player.set_clip();
+
     bool running = true;
     while(running) {
         while(SDL_PollEvent(&g_event) != 0) {
             if(g_event.type == SDL_QUIT) {
                 running = false;
             }
+            p_player.HandleInputAction(g_event, g_screen);
         }
 
         SDL_SetRenderDrawColor(g_screen, RENDER_DRAW_COLOR, RENDER_DRAW_COLOR,
@@ -86,6 +92,15 @@ int main(int argc, char* argv[])
         SDL_RenderClear(g_screen);
 
         g_background.Render(g_screen, NULL);
+        game_map.DrawMap(g_screen);
+        Map map_data = game_map.getMap();
+
+        p_player.setMapXY(map_data.start_x, map_data.start_y);
+        p_player.DoPlayer(map_data);
+        p_player.Shown(g_screen);
+
+        // cap nhat ban do khi di chuyen
+        game_map.setMap(map_data);
         game_map.DrawMap(g_screen);
 
         SDL_RenderPresent(g_screen);
