@@ -4,6 +4,12 @@
 #include "CommonFunc.h"
 #include "BaseObj.h"
 
+#define GRAVITY_SPEED 0.8
+#define MAX_FALL_SPEED 10
+#define PLAYER_SPEED 8
+#define PLAYER_JUMP 12
+
+
 class MainObj : public BaseObj
 {
 public:
@@ -26,6 +32,7 @@ public:
 
     void setMapXY(const int _map_x, const int _map_y) {map_x = _map_x; map_y = _map_y;};
     void CenterEntityOnMap(Map& map_data);
+    void UpdateImgPlayer(SDL_Renderer* des);
 
 private:
     float x_val;
@@ -40,11 +47,14 @@ private:
     int map_x;
     int map_y;
 
-    SDL_Rect frame_clip[8];
-    Input input_type; // move status
     int frame;
+    SDL_Rect frame_clip[8];
+
+    Input input_type; // move status
     int status; // left or right
     bool on_ground;
+    int come_back_time;
+
 };
 
 

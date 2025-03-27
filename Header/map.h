@@ -4,7 +4,7 @@
 #include "CommonFunc.h"
 #include "BaseObj.h"
 
-const int MAX_TILES = 20;
+const int MAX_TILES = 10;
 
 class TileMat : public BaseObj
 {
@@ -19,7 +19,7 @@ public:
     GameMap() {}
     ~GameMap() {}
 
-    void LoadMap(char* name);
+    void LoadMap(string name);
     void LoadTiles(SDL_Renderer* screen);
     void DrawMap(SDL_Renderer* screen);
     Map getMap() const {return game_map;};

@@ -2,6 +2,7 @@
 #include "BaseObj.h"
 #include "map.h"
 #include "MainObj.h"
+#include "Timer.h"
 
 BaseObj g_background;
 
@@ -60,6 +61,8 @@ void close()
 
 int main(int argc, char* argv[])
 {
+    Timer fps_timer;
+
     if(InitData() == false) {
         cout << "Can not load data";
         return -1;
@@ -71,7 +74,7 @@ int main(int argc, char* argv[])
     }
 
     GameMap game_map;
-    game_map.LoadMap("map/map01.dat");
+    game_map.LoadMap("map//map01.dat");
     game_map.LoadTiles(g_screen);
 
     MainObj p_player;
@@ -80,6 +83,8 @@ int main(int argc, char* argv[])
 
     bool running = true;
     while(running) {
+        fps_timer.start();
+
         while(SDL_PollEvent(&g_event) != 0) {
             if(g_event.type == SDL_QUIT) {
                 running = false;
@@ -92,7 +97,7 @@ int main(int argc, char* argv[])
         SDL_RenderClear(g_screen);
 
         g_background.Render(g_screen, NULL);
-        game_map.DrawMap(g_screen);
+
         Map map_data = game_map.getMap();
 
         p_player.setMapXY(map_data.start_x, map_data.start_y);
@@ -104,6 +109,17 @@ int main(int argc, char* argv[])
         game_map.DrawMap(g_screen);
 
         SDL_RenderPresent(g_screen);
+
+        // xu ly thoi gian (tao do tre)
+        int real_time = fps_timer.get_ticks();
+        int time_per_frame = 1000/FRAME_PER_SECOND; // ms
+
+        if(real_time < time_per_frame) {
+            int delay_time = time_per_frame - real_time;
+            if(delay_time >= 0) {
+                SDL_Delay(delay_time);
+            }
+        }
     }
 
     close();

@@ -16,6 +16,7 @@ BaseObj::~BaseObj()
 
 bool BaseObj::LoadImg(string path, SDL_Renderer* screen)
 {
+    Free(); // tranh tinh trang rac vung nho
     SDL_Texture* new_texture = NULL;
 
     SDL_Surface* load_surface = IMG_Load(path.c_str());

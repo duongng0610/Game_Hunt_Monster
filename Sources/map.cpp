@@ -1,10 +1,10 @@
 #include "map.h"
 
-void GameMap::LoadMap(char* name)
+void GameMap::LoadMap(string name)
 {
-    ifstream file(name, ios::binary);
+    ifstream file(name);
 
-    if(!file) {
+    if(!file.is_open()) {
         cout << "Mission failed" << endl;
         return;
     }
@@ -14,8 +14,20 @@ void GameMap::LoadMap(char* name)
 
     for(int i = 0; i < MAX_MAP_Y; i++) {
         for(int j = 0; j < MAX_MAP_X; j++) {
-            file >> game_map.tile[i][j];
-            int val = game_map.tile[i][j];
+            // xu ly loi ko doc duoc
+            int val;
+            // kiem tra loi doc file
+            if (!(file >> val)) {
+                cout << "Error reading map data at row: " << i << " col: " << j << endl;
+                file.close();
+                return;
+            }
+            // kiem tra gia tri val bat thuong
+            if (val < 0 || val >= MAX_TILES) {
+                cout << "Invalid value " << val << " at row: " << i << " col: " << j << endl;
+            }
+
+            game_map.tile[i][j] = val;
 
             if(val > 0) {
                 if(j > game_map.max_x) {
@@ -28,6 +40,11 @@ void GameMap::LoadMap(char* name)
             }
         }
     }
+    // kiem tra file con du lieu rac
+    if (!file.eof()) {
+        cout << "File may not contain enough data";
+    }
+
 
     game_map.max_x = (game_map.max_x + 1) * TILE_SIZE;
     game_map.max_y = (game_map.max_y + 1) * TILE_SIZE;
@@ -47,10 +64,15 @@ void GameMap::LoadTiles(SDL_Renderer* screen)
     ifstream file;
 
     for(int i = 0; i < MAX_TILES; i++) {
-        name = "map//" + to_string(i) + ".png";
-        file.open(name, ios:: binary);
+        string num_img = to_string(i);
+        name = "map//" + num_img + ".png";
+        file.open(name);
 
-        if(!file) continue;
+        if(!file.is_open()) {
+            cout << "Can not open: " << name << endl;
+            continue;
+        }
+
         file.close();
         tile_mat[i].LoadImg(name, screen);
     }
@@ -71,20 +93,18 @@ void GameMap::DrawMap(SDL_Renderer* screen)
     map_x = game_map.start_x / TILE_SIZE;
 
     x1 = (game_map.start_x % TILE_SIZE)* (-1);
-    if(x1 == 0)  x2 =  x1 + SCREEN_WIDTH;
-    else x2 =  x2 =  x1 + SCREEN_WIDTH + TILE_SIZE;
+    x2 = (x1 == 0) ? x1 + SCREEN_WIDTH : x1 + SCREEN_WIDTH + TILE_SIZE;
 
     map_y = game_map.start_y / TILE_SIZE;
 
     y1 = (game_map.start_y % TILE_SIZE)* (-1);
-    if(x1 == 0)  y2 =  y1 + SCREEN_WIDTH;
-    else y2 =  y2 =  y1 + SCREEN_WIDTH + TILE_SIZE;
+    y2 = (y1 == 0) ? y1 + SCREEN_HEIGHT : y1 + SCREEN_HEIGHT + TILE_SIZE;
 
-    for(int i = y1; i < y2; i+= TILE_SIZE) {
-        map_x = game_map.start_x / TILE_SIZE;
-        for(int j = x1; j < x2; j+= TILE_SIZE) {
+    for(int i = y1; i < y2; i += TILE_SIZE) {
+        map_x = game_map.start_x / TILE_SIZE; // reset lai map_x
+        for(int j = x1; j < x2; j += TILE_SIZE) {
             int val = game_map.tile[map_y][map_x];
-            if(val > 0) {
+            if(val > 0 && val < MAX_TILES) {
                 tile_mat[val].SetRect(j, i);
                 tile_mat[val].Render(screen);
             }
@@ -92,8 +112,6 @@ void GameMap::DrawMap(SDL_Renderer* screen)
         }
         map_y++;
     }
-
-
 }
 
 
