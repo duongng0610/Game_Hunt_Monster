@@ -51,13 +51,13 @@ void MainObj::set_clip()
         frame_clip[0].y = 0;
         frame_clip[0].w = width_frame;
         frame_clip[0].h = height_frame;
-    }
 
-    for(int i = 1; i < 8; i++) {
-        frame_clip[i].x = i*width_frame;
-        frame_clip[i].y = 0;
-        frame_clip[i].w = width_frame;
-        frame_clip[i].h = height_frame;
+        for(int i = 1; i < 8; i++) {
+            frame_clip[i].x = i*width_frame;
+            frame_clip[i].y = 0;
+            frame_clip[i].w = width_frame;
+            frame_clip[i].h = height_frame;
+        }
     }
 }
 
@@ -125,6 +125,53 @@ void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
                 break;
             }
             default: break;
+        }
+    }
+
+    if(events.type == SDL_MOUSEBUTTONDOWN) {
+       if(events.button.button == SDL_BUTTON_LEFT) {
+          BulletObj* p_bullet = new BulletObj();
+          // load anh dan
+          p_bullet->LoadImg("img//player_bullet.png", screen);
+
+          if(status == WALK_LEFT) {
+             p_bullet->Set_Bullet_Dir(BulletObj::DIR_LEFT);
+             //xet vi tri dan ben trai
+             p_bullet->SetRect(this->rect.x, this->rect.y + height_frame*0.2);
+
+          }else {
+             p_bullet->Set_Bullet_Dir(BulletObj::DIR_RIGHT);
+             // xet vi tri dan ben phai
+             p_bullet->SetRect(this->rect.x + width_frame - 20, rect.y + height_frame*0.2);
+          }
+
+          p_bullet->Set_X_val(20);
+          p_bullet->Set_Is_Move(true);
+
+          p_bullet_list.push_back(p_bullet);
+        }
+    }
+}
+
+
+
+void MainObj::HandleBullet(SDL_Renderer* des)
+{
+    for(int i = 0; i < (int)p_bullet_list.size(); i++) {
+        BulletObj* p_bullet = p_bullet_list[i];
+        if(p_bullet != NULL) {
+                // dan xuat hien
+            if(p_bullet->Get_Is_Move() == true) {
+                p_bullet->HandleMove(SCREEN_WIDTH, SCREEN_HEIGHT);
+                p_bullet->Render(des);
+            }else {
+                // xoa dan ko can thiet
+                p_bullet_list.erase(p_bullet_list.begin()+i);
+                if(p_bullet != NULL) {
+                    delete p_bullet;
+                    p_bullet = NULL;
+                }
+            }
         }
     }
 }
@@ -274,10 +321,10 @@ void MainObj::UpdateImgPlayer(SDL_Renderer* des)
         if(status == WALK_LEFT) {
             LoadImg("img//player_left.png", des);
         }else LoadImg("img//player_right.png", des);
-    }/*else {
+    }else {
         if(status == WALK_LEFT) {
             LoadImg("img//jump_left.png", des);
         }else LoadImg("img//jump_right.png", des);
-    }*/
+    }
 }
 

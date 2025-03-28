@@ -3,11 +3,12 @@
 
 #include "CommonFunc.h"
 #include "BaseObj.h"
+#include "BulletObj.h"
 
 #define GRAVITY_SPEED 0.8
 #define MAX_FALL_SPEED 10
 #define PLAYER_SPEED 8
-#define PLAYER_JUMP 12
+#define PLAYER_JUMP 14
 
 
 class MainObj : public BaseObj
@@ -34,7 +35,15 @@ public:
     void CenterEntityOnMap(Map& map_data);
     void UpdateImgPlayer(SDL_Renderer* des);
 
+    void set_bullet_list(vector<BulletObj*> bullet_list) {
+        p_bullet_list = bullet_list;
+    }
+    vector<BulletObj*> get_bullet_list() const {return p_bullet_list;}
+    void HandleBullet(SDL_Renderer* des);
+
 private:
+    vector<BulletObj*> p_bullet_list;
+
     float x_val;
     float y_val;
 

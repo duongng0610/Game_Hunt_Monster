@@ -14,7 +14,6 @@ void GameMap::LoadMap(string name)
 
     for(int i = 0; i < MAX_MAP_Y; i++) {
         for(int j = 0; j < MAX_MAP_X; j++) {
-            // xu ly loi ko doc duoc
             int val;
             // kiem tra loi doc file
             if (!(file >> val)) {

@@ -3,6 +3,7 @@
 #include "map.h"
 #include "MainObj.h"
 #include "Timer.h"
+#include "ThreadObj.h"
 
 BaseObj g_background;
 
@@ -59,6 +60,24 @@ void close()
     SDL_Quit();
 }
 
+vector<ThreadObj*> MakeThreadList()
+{
+    vector<ThreadObj*> list_thread;
+    ThreadObj* thread_objs = new ThreadObj[20];
+    for(int i = 0; i < 20; i++) {
+        ThreadObj* p_thread = (thread_objs + i);
+        if(p_thread != NULL) {
+            p_thread ->LoadImg("img//thread_level.png", g_screen);
+            p_thread ->set_clips();
+            p_thread ->Set_X_pos(700 + i*1200);
+            p_thread ->Set_Y_pos(250);
+
+            list_thread.push_back(p_thread);
+        }
+    }
+    return list_thread;
+}
+
 int main(int argc, char* argv[])
 {
     Timer fps_timer;
@@ -81,6 +100,8 @@ int main(int argc, char* argv[])
     p_player.LoadImg("img//player_right.png", g_screen);
     p_player.set_clip();
 
+    vector<ThreadObj*> thread_list = MakeThreadList();
+
     bool running = true;
     while(running) {
         fps_timer.start();
@@ -100,6 +121,7 @@ int main(int argc, char* argv[])
 
         Map map_data = game_map.getMap();
 
+        p_player.HandleBullet(g_screen);
         p_player.setMapXY(map_data.start_x, map_data.start_y);
         p_player.DoPlayer(map_data);
         p_player.Shown(g_screen);
@@ -107,6 +129,15 @@ int main(int argc, char* argv[])
         // cap nhat ban do khi di chuyen
         game_map.setMap(map_data);
         game_map.DrawMap(g_screen);
+
+        for(int i = 0; i < (int)thread_list.size(); i++) {
+            ThreadObj* p_thread = thread_list[i];
+            if(p_thread != NULL) {
+                p_thread ->SetMapXY(map_data.start_x, map_data.start_y);
+                p_thread ->DoPlayer(map_data);
+                p_thread ->Shown(g_screen);
+            }
+        }
 
         SDL_RenderPresent(g_screen);
 
