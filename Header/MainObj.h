@@ -34,12 +34,18 @@ public:
     void setMapXY(const int _map_x, const int _map_y) {map_x = _map_x; map_y = _map_y;};
     void CenterEntityOnMap(Map& map_data);
     void UpdateImgPlayer(SDL_Renderer* des);
+    SDL_Rect Get_Rect_Frame();
 
     void set_bullet_list(vector<BulletObj*> bullet_list) {
         p_bullet_list = bullet_list;
     }
     vector<BulletObj*> get_bullet_list() const {return p_bullet_list;}
-    void HandleBullet(SDL_Renderer* des);
+    void HandleBullet(SDL_Renderer* des, Map& map_data);
+    void RemoveBullet(const int& index);
+
+    void set_come_back_time(const int& time) {come_back_time = time;}
+
+    bool get_winner_status() const {return isWinner;}
 
 private:
     vector<BulletObj*> p_bullet_list;
@@ -64,6 +70,7 @@ private:
     bool on_ground;
     int come_back_time;
 
+    bool isWinner = false;
 };
 
 

@@ -44,6 +44,18 @@ bool MainObj::LoadImg(string path, SDL_Renderer* screen)
     return ret;
 }
 
+SDL_Rect MainObj::Get_Rect_Frame()
+{
+    SDL_Rect pRect;
+
+    pRect.x = rect.x;
+    pRect.y = rect.y;
+    pRect.w = width_frame;
+    pRect.h = height_frame;
+
+    return pRect;
+}
+
 void MainObj::set_clip()
 {
     if(width_frame > 0 && height_frame > 0) {
@@ -137,12 +149,12 @@ void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
           if(status == WALK_LEFT) {
              p_bullet->Set_Bullet_Dir(BulletObj::DIR_LEFT);
              //xet vi tri dan ben trai
-             p_bullet->SetRect(this->rect.x, this->rect.y + height_frame*0.2);
+             p_bullet->SetRect(this->rect.x, this->rect.y + height_frame*0.15);
 
           }else {
              p_bullet->Set_Bullet_Dir(BulletObj::DIR_RIGHT);
              // xet vi tri dan ben phai
-             p_bullet->SetRect(this->rect.x + width_frame - 20, rect.y + height_frame*0.2);
+             p_bullet->SetRect(this->rect.x + width_frame - 20, rect.y + height_frame*0.15);
           }
 
           p_bullet->Set_X_val(20);
@@ -155,14 +167,14 @@ void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
 
 
 
-void MainObj::HandleBullet(SDL_Renderer* des)
+void MainObj::HandleBullet(SDL_Renderer* des, Map& map_data)
 {
     for(int i = 0; i < (int)p_bullet_list.size(); i++) {
         BulletObj* p_bullet = p_bullet_list[i];
         if(p_bullet != NULL) {
                 // dan xuat hien
             if(p_bullet->Get_Is_Move() == true) {
-                p_bullet->HandleMove(SCREEN_WIDTH, SCREEN_HEIGHT);
+                p_bullet->HandleMove(SCREEN_WIDTH, SCREEN_HEIGHT, map_data);
                 p_bullet->Render(des);
             }else {
                 // xoa dan ko can thiet
@@ -172,6 +184,20 @@ void MainObj::HandleBullet(SDL_Renderer* des)
                     p_bullet = NULL;
                 }
             }
+        }
+    }
+}
+
+void MainObj::RemoveBullet(const int& index)
+{
+    int num = (int)p_bullet_list.size();
+    if(num > 0 && index < num) {
+        BulletObj* p_bullet = p_bullet_list[index];
+        p_bullet_list.erase(p_bullet_list.begin() + index);
+
+        if(p_bullet != NULL) {
+            delete p_bullet;
+            p_bullet = NULL;
         }
     }
 }
@@ -197,6 +223,9 @@ void MainObj::inMap(Map& map_data)
         // di chuyen sang phai
         if(x_val > 0) {
             if(map_data.tile[y1][x2] != 0 || map_data.tile[y2][x2] != 0) {
+               if(map_data.tile[y1][x2] == 4 || map_data.tile[y2][x2] == 4) {
+                  isWinner = true;
+               }
                x_pos = x2*TILE_SIZE;
                x_pos -= width_frame + 1;
                x_val = 0;

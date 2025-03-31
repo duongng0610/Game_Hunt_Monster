@@ -37,7 +37,7 @@ public:
     }
     int Get_Bullet_Dir() const {return bullet_dir;}
 
-    void HandleMove(const int& x_border, const int& y_border);
+    void HandleMove(const int& x_border, const int& y_border, Map& map_data);
 private:
     int x_val;
     int y_val;
