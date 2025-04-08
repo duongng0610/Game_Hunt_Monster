@@ -113,5 +113,11 @@ void GameMap::DrawMap(SDL_Renderer* screen)
     }
 }
 
+void GameMap :: resetMap()
+{
+    game_map.start_x = 0;
+    game_map.start_y = 0;
+}
+
 
 

@@ -26,6 +26,8 @@ MainObj::MainObj()
 
     map_x = 0;
     map_y = 0;
+
+    isWinner = false;
 }
 
 MainObj::~MainObj()
@@ -94,7 +96,7 @@ void MainObj::Shown(SDL_Renderer* des)
     }
 }
 
-void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
+void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen, Mix_Chunk* bullet_sound)
 {
     if(events.type == SDL_KEYDOWN) {
         switch (events.key.keysym.sym) {
@@ -161,6 +163,12 @@ void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen)
           p_bullet->Set_Is_Move(true);
 
           p_bullet_list.push_back(p_bullet);
+
+          // am thanh ban dan
+          int ret = Mix_PlayChannel(-1, bullet_sound, 0);
+          if(!ret) {
+            cout << "Can load bullet sound correctly!";
+          }
         }
     }
 }
@@ -225,10 +233,12 @@ void MainObj::inMap(Map& map_data)
             if(map_data.tile[y1][x2] != 0 || map_data.tile[y2][x2] != 0) {
                if(map_data.tile[y1][x2] == 4 || map_data.tile[y2][x2] == 4) {
                   isWinner = true;
+                  return;
+               }else {
+                  x_pos = x2*TILE_SIZE;
+                  x_pos -= width_frame + 1;
+                  x_val = 0;
                }
-               x_pos = x2*TILE_SIZE;
-               x_pos -= width_frame + 1;
-               x_val = 0;
            }
         }
         // di chuyen sang trai
@@ -355,5 +365,20 @@ void MainObj::UpdateImgPlayer(SDL_Renderer* des)
             LoadImg("img//jump_left.png", des);
         }else LoadImg("img//jump_right.png", des);
     }
+}
+
+// dat lai trang thai khi thang
+void MainObj :: Reset()
+{
+    x_pos = 0;
+    y_pos = 0;
+    x_val = 0;
+    y_val = 0;
+    isWinner = false;
+    input_type.left = 0;
+    input_type.right = 0;
+    input_type.jump = 0;
+    on_ground = false;
+    come_back_time = 0;
 }
 

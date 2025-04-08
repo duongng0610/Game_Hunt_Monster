@@ -25,7 +25,7 @@ public:
 
     bool LoadImg(string path, SDL_Renderer* screen);
     void Shown(SDL_Renderer* des);
-    void HandleInputAction(SDL_Event events, SDL_Renderer* screen);
+    void HandleInputAction(SDL_Event events, SDL_Renderer* screen, Mix_Chunk* bullet_sound);
     void set_clip();
 
     void DoPlayer(Map& map_data);
@@ -46,6 +46,8 @@ public:
     void set_come_back_time(const int& time) {come_back_time = time;}
 
     bool get_winner_status() const {return isWinner;}
+
+    void Reset();
 
 private:
     vector<BulletObj*> p_bullet_list;
@@ -70,7 +72,7 @@ private:
     bool on_ground;
     int come_back_time;
 
-    bool isWinner = false;
+    bool isWinner;
 };
 
 

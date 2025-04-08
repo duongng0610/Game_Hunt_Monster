@@ -18,6 +18,11 @@ static SDL_Window* g_window = NULL;
 static SDL_Renderer* g_screen = NULL;
 static SDL_Event g_event;
 
+// Audio
+static Mix_Chunk* g_sound_bullet = NULL;
+static Mix_Chunk* g_sound_explosion = NULL;
+static Mix_Music* g_sound_background = NULL;
+
 // Screen
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 640;
@@ -35,7 +40,17 @@ const int TILE_SIZE = 64;
 const int MAX_MAP_X = 400;
 const int MAX_MAP_Y = 10;
 
-struct Map {
+enum GameState
+{
+    MENU,
+    PLAYING,
+    WIN,
+    LOSE,
+    QUIT,
+};
+
+struct Map
+{
     int start_x;
     int start_y;
 
