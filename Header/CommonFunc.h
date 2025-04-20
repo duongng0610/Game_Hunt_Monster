@@ -46,6 +46,7 @@ enum GameState
     PLAYING,
     WIN,
     LOSE,
+    PAUSE,
     QUIT,
 };
 

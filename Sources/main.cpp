@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
 {
     Timer fps_timer;
     Uint32 start_time = 0; // thoi diem bat dau choi game
+    Uint32 elapsed_time = 0; // thoi gian troi qua truoc khi dung game
 
     if (InitData() == false) return -1;
     if (LoadBackGround() == false) return -1;
@@ -211,6 +212,7 @@ int main(int argc, char* argv[])
     Survial pSurvival;
     pSurvival.Init(g_screen);
 
+    // tao texture cho menuFont
     TTF_Font* menuFont = TTF_OpenFont("font//dlxfont_.ttf", 24);
     if (menuFont == NULL) {
         cout << "Không thể tải font menu: " << TTF_GetError() << endl;
@@ -219,6 +221,7 @@ int main(int argc, char* argv[])
 
     SDL_Color textColor = {255, 255, 255, 255};
     SDL_Surface* startSurface = TTF_RenderText_Solid(menuFont, "Start Game", textColor);
+
     if (startSurface == NULL) {
         cout << "Không thể render 'Start Game': " << TTF_GetError() << endl;
         return -1;
@@ -242,6 +245,19 @@ int main(int argc, char* argv[])
     }
     SDL_FreeSurface(quitSurface);
 
+    SDL_Surface* continueSurface = TTF_RenderText_Solid(menuFont, "Continue", textColor);
+    if (continueSurface == NULL) {
+        cout << "Không thể render 'Continue': " << TTF_GetError() << endl;
+        return -1;
+    }
+    SDL_Texture* continueTexture = SDL_CreateTextureFromSurface(g_screen, continueSurface);
+    if (quitTexture == NULL) {
+        cout << "Không thể tạo texture 'Continue': " << SDL_GetError() << endl;
+        return -1;
+    }
+    SDL_FreeSurface(continueSurface);
+
+    // vi tri o chon Start, Quit, Pause
     int startW, startH;
     SDL_QueryTexture(startTexture, NULL, NULL, &startW, &startH);
     SDL_Rect startRect = {(SCREEN_WIDTH - startW) / 2, SCREEN_HEIGHT / 2 - 50, startW, startH};
@@ -250,6 +266,11 @@ int main(int argc, char* argv[])
     SDL_QueryTexture(quitTexture, NULL, NULL, &quitW, &quitH);
     SDL_Rect quitRect = {(SCREEN_WIDTH - quitW) / 2, SCREEN_HEIGHT / 2 + 20, quitW, quitH};
 
+    int continueW, continueH;
+    SDL_QueryTexture(continueTexture, NULL, NULL, &continueW, &continueH);
+    SDL_Rect continueRect = {(SCREEN_WIDTH - continueW) / 2, (SCREEN_HEIGHT - continueH) / 2 - 50, continueW, continueH};
+
+    // xu ly nhac nen
     int ret = Mix_PlayMusic(g_sound_background, -1);
     if (ret == -1) {
         cout << "Không thể phát nhạc nền: " << Mix_GetError() << endl;
@@ -281,7 +302,13 @@ int main(int argc, char* argv[])
             }
 
             if (g_event.type == SDL_KEYDOWN && g_event.key.keysym.sym == SDLK_ESCAPE) {
-                currenState = QUIT;
+                if (currenState == PLAYING) {
+                    currenState = PAUSE; // Chuyển sang PAUSE khi đang chơi
+                    elapsed_time = SDL_GetTicks() - start_time;
+                } else if (currenState == PAUSE) {
+                    currenState = PLAYING; // Thoát PAUSE để tiếp tục chơi
+                    start_time = SDL_GetTicks() - elapsed_time;
+                }
             }
 
             if (currenState == MENU) {
@@ -293,12 +320,10 @@ int main(int argc, char* argv[])
                     if (SDL_PointInRect(&mousePoint, &startRect)) {
                         currenState = PLAYING; // Nhấp vào "Start Game"
                         start_time = SDL_GetTicks(); // Đặt thời gian bắt đầu khi vào trạng thái PLAYING
+                        elapsed_time = 0;
                     } else if (SDL_PointInRect(&mousePoint, &quitRect)) {
                         currenState = QUIT; // Nhấp vào "Quit"
                     }
-                }
-                if (g_event.type == SDL_KEYDOWN && g_event.key.keysym.sym == SDLK_ESCAPE) {
-                    currenState = QUIT; // Thoát bằng phím Esc
                 }
             } else if (currenState == PLAYING) {
                 p_player.HandleInputAction(g_event, g_screen, g_sound_bullet);
@@ -314,6 +339,19 @@ int main(int argc, char* argv[])
                     thread_list = MakeThreadList();
                     start_time = 0;
                 }
+            } else if (currenState == PAUSE) {
+                if (g_event.type == SDL_MOUSEBUTTONDOWN && g_event.button.button == SDL_BUTTON_LEFT) {
+                    int mouseX = g_event.button.x;
+                    int mouseY = g_event.button.y;
+                    SDL_Point mousePoint = {mouseX, mouseY};
+
+                    if (SDL_PointInRect(&mousePoint, &continueRect)) {
+                        currenState = PLAYING; // Nhấp vào "Continue" để tiếp tục
+                        start_time = SDL_GetTicks() - elapsed_time; // Khôi phục thời gian
+                    } else if (SDL_PointInRect(&mousePoint, &quitRect)) {
+                        currenState = QUIT; // Nhấp vào "Quit" để thoát
+                    }
+                }
             }
         }
 
@@ -325,6 +363,10 @@ int main(int argc, char* argv[])
             g_menu.Render(g_screen, NULL);
             SDL_RenderCopy(g_screen, startTexture, NULL, &startRect);
             SDL_RenderCopy(g_screen, quitTexture, NULL, &quitRect);
+        } else if (currenState == PAUSE) {
+            g_menu.Render(g_screen, NULL); // Vẽ nền menu
+            SDL_RenderCopy(g_screen, continueTexture, NULL, &continueRect); // Hiển thị "Continue"
+            SDL_RenderCopy(g_screen, quitTexture, NULL, &quitRect); // Hiển thị "Quit"
         } else if (currenState == PLAYING) {
             g_background.Render(g_screen, NULL);
 
@@ -426,7 +468,7 @@ int main(int argc, char* argv[])
             }
 
             string str_time = "Time: ";
-            Uint32 time_val = (SDL_GetTicks() - start_time)  / 1000;
+            Uint32 time_val = (SDL_GetTicks() - start_time) / 1000;
             Uint32 val_time = 200 - time_val;
 
             if (val_time <= 0) {
@@ -471,6 +513,7 @@ int main(int argc, char* argv[])
 
     SDL_DestroyTexture(startTexture);
     SDL_DestroyTexture(quitTexture);
+    SDL_DestroyTexture(continueTexture);
     TTF_CloseFont(menuFont);
 
     close();
