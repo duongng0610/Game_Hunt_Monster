@@ -39,6 +39,10 @@ bool BaseObj::LoadImg(string path, SDL_Renderer* screen)
 
 void BaseObj::Render(SDL_Renderer* des, const SDL_Rect* clip)
 {
+    if (p_obj == NULL) {
+        cout << "Texture is NULL in BaseObj::Render" << endl;
+        return;
+    }
     SDL_Rect renderquad = {rect.x, rect.y, rect.w, rect.h};
 
     SDL_RenderCopy(des, p_obj, clip, &renderquad);

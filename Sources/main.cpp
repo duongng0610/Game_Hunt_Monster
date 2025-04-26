@@ -7,12 +7,14 @@
 #include "TextObj.h"
 #include "Survial.h"
 #include "ExplosionObj.h"
+#include "BossObj.h"
 
 BaseObj g_background;
 BaseObj g_menu;
 BaseObj g_win;
 BaseObj g_lose;
 TTF_Font* font_time = NULL;
+BossObj* boss = NULL;
 
 bool InitData()
 {
@@ -28,57 +30,86 @@ bool InitData()
         return false;
     }
 
+    g_sound_background = Mix_LoadMUS("sound//background.mp3");
+    if (g_sound_background == NULL) {
+        cout << "Không thể tải 'background.mp3': " << Mix_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        IMG_Quit();
+        TTF_Quit();
+        return false;
+    }
+
+    // Phát nhạc ngay sau khi tải
+    if (Mix_PlayMusic(g_sound_background, -1) == -1) {
+        cout << "Không thể phát nhạc nền: " << Mix_GetError() << endl;
+        return false;
+    }
+
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     g_window = SDL_CreateWindow("Hunt Monster", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                 SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (g_window == NULL) {
         cout << "Không thể tạo cửa sổ: " << SDL_GetError() << endl;
-        success = false;
-    } else {
-        g_screen = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        if (g_screen == NULL) {
-            cout << "Không thể tạo renderer: " << SDL_GetError() << endl;
-            success = false;
-        } else {
-            SDL_SetRenderDrawColor(g_screen, RENDER_DRAW_COLOR, RENDER_DRAW_COLOR,
-                                   RENDER_DRAW_COLOR, RENDER_DRAW_COLOR);
-            int imgFlags = IMG_INIT_PNG;
-            if (!(IMG_Init(imgFlags) && imgFlags)) {
-                cout << "IMG_Init thất bại: " << IMG_GetError() << endl;
-                success = false;
-            }
-        }
-
-        if (TTF_Init() == -1) {
-            cout << "TTF_Init thất bại: " << TTF_GetError() << endl;
-            success = false;
-        }
-
-        font_time = TTF_OpenFont("font//dlxfont_.ttf", 15);
-        if (font_time == NULL) {
-            cout << "Không thể tải font time: " << TTF_GetError() << endl;
-            success = false;
-        }
-
-        g_sound_bullet = Mix_LoadWAV("sound//bullet.wav");
-        if (g_sound_bullet == NULL) {
-            cout << "Không thể tải 'bullet.wav': " << Mix_GetError() << endl;
-            success = false;
-        }
-
-        g_sound_explosion = Mix_LoadWAV("sound//explosion.wav");
-        if (g_sound_explosion == NULL) {
-            cout << "Không thể tải 'explosion.wav': " << Mix_GetError() << endl;
-            success = false;
-        }
-
-        g_sound_background = Mix_LoadMUS("sound//background.mp3");
-        if (g_sound_background == NULL) {
-            cout << "Không thể tải 'background.mp3': " << Mix_GetError() << endl;
-            success = false;
-        }
+        return false;
     }
+
+    g_screen = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (g_screen == NULL) {
+        cout << "Không thể tạo renderer: " << SDL_GetError() << endl;
+        SDL_DestroyWindow(g_window);
+        return false;
+    }
+
+    SDL_SetRenderDrawColor(g_screen, RENDER_DRAW_COLOR, RENDER_DRAW_COLOR,
+                           RENDER_DRAW_COLOR, RENDER_DRAW_COLOR);
+    int imgFlags = IMG_INIT_PNG;
+    if (!(IMG_Init(imgFlags) && imgFlags)) {
+        cout << "IMG_Init thất bại: " << IMG_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        return false;
+    }
+
+    if (TTF_Init() == -1) {
+        cout << "TTF_Init thất bại: " << TTF_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        IMG_Quit();
+        return false;
+    }
+
+    font_time = TTF_OpenFont("font//dlxfont_.ttf", 15);
+    if (font_time == NULL) {
+        cout << "Không thể tải font time: " << TTF_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        IMG_Quit();
+        TTF_Quit();
+        return false;
+    }
+
+    g_sound_bullet = Mix_LoadWAV("sound//bullet.wav");
+    if (g_sound_bullet == NULL) {
+        cout << "Không thể tải 'bullet.wav': " << Mix_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        IMG_Quit();
+        TTF_Quit();
+        return false;
+    }
+
+    g_sound_explosion = Mix_LoadWAV("sound//explosion.wav");
+    if (g_sound_explosion == NULL) {
+        cout << "Không thể tải 'explosion.wav': " << Mix_GetError() << endl;
+        SDL_DestroyRenderer(g_screen);
+        SDL_DestroyWindow(g_window);
+        IMG_Quit();
+        TTF_Quit();
+        return false;
+    }
+
     return success;
 }
 
@@ -148,8 +179,10 @@ void close()
 vector<ThreadObj*> MakeThreadList()
 {
     vector<ThreadObj*> list_thread;
+    vector<ThreadObj*> allocated_arrays;
 
     ThreadObj* dynamic_threads = new ThreadObj[10];
+    allocated_arrays.push_back(dynamic_threads);
     for (int i = 0; i < 10; i++) {
         ThreadObj* p_thread = (dynamic_threads + i);
         if (p_thread != NULL) {
@@ -162,12 +195,12 @@ vector<ThreadObj*> MakeThreadList()
             int pos2 = p_thread->Get_X_pos() + SPACE_MOVE / 2;
             p_thread->set_animtion_pos(pos1, pos2);
             p_thread->set_input_left(1);
-
             list_thread.push_back(p_thread);
         }
     }
 
     ThreadObj* thread_objs = new ThreadObj[20];
+    allocated_arrays.push_back(thread_objs);
     for (int i = 0; i < 20; i++) {
         ThreadObj* p_thread = (thread_objs + i);
         if (p_thread != NULL) {
@@ -175,10 +208,8 @@ vector<ThreadObj*> MakeThreadList()
             p_thread->set_clips();
             p_thread->Set_X_pos(650 + i * 1200);
             p_thread->Set_Y_pos(250);
-
             BulletObj* p_bullet = new BulletObj();
             p_thread->InitBullet(p_bullet, g_screen);
-
             list_thread.push_back(p_thread);
         }
     }
@@ -189,12 +220,12 @@ vector<ThreadObj*> MakeThreadList()
 int main(int argc, char* argv[])
 {
     Timer fps_timer;
-    Uint32 start_time = 0; // thoi diem bat dau choi game
-    Uint32 elapsed_time = 0; // thoi gian troi qua truoc khi dung game
+    Uint32 start_time = 0;
+    Uint32 elapsed_time = 0;
 
     if (InitData() == false) return -1;
     if (LoadBackGround() == false) return -1;
-    if(LoadMenuScreen() == false) return -1;
+    if (LoadMenuScreen() == false) return -1;
     if (LoadWinScreen() == false) return -1;
     if (LoadLoseScreen() == false) return -1;
 
@@ -212,7 +243,6 @@ int main(int argc, char* argv[])
     Survial pSurvival;
     pSurvival.Init(g_screen);
 
-    // tao texture cho menuFont
     TTF_Font* menuFont = TTF_OpenFont("font//dlxfont_.ttf", 24);
     if (menuFont == NULL) {
         cout << "Không thể tải font menu: " << TTF_GetError() << endl;
@@ -257,7 +287,6 @@ int main(int argc, char* argv[])
     }
     SDL_FreeSurface(continueSurface);
 
-    // vi tri o chon Start, Quit, Pause
     int startW, startH;
     SDL_QueryTexture(startTexture, NULL, NULL, &startW, &startH);
     SDL_Rect startRect = {(SCREEN_WIDTH - startW) / 2, SCREEN_HEIGHT / 2 - 50, startW, startH};
@@ -269,12 +298,6 @@ int main(int argc, char* argv[])
     int continueW, continueH;
     SDL_QueryTexture(continueTexture, NULL, NULL, &continueW, &continueH);
     SDL_Rect continueRect = {(SCREEN_WIDTH - continueW) / 2, (SCREEN_HEIGHT - continueH) / 2 - 50, continueW, continueH};
-
-    // xu ly nhac nen
-    int ret = Mix_PlayMusic(g_sound_background, -1);
-    if (ret == -1) {
-        cout << "Không thể phát nhạc nền: " << Mix_GetError() << endl;
-    }
 
     vector<ThreadObj*> thread_list = MakeThreadList();
 
@@ -293,6 +316,28 @@ int main(int argc, char* argv[])
 
     GameState currenState = MENU;
 
+    boss = new BossObj();
+    boss->SetExplosionSound(g_sound_explosion);
+    boss->set_clips();
+
+    int boss_x_pos = 1500;
+    int boss_y_pos = 0;
+    int tile_x = boss_x_pos / TILE_SIZE;
+
+    while (boss_y_pos < game_map.getMap().max_y - NORMAL_FRAME_HEIGHT && boss_y_pos / TILE_SIZE < MAX_MAP_Y
+           && game_map.getMap().tile[boss_y_pos / TILE_SIZE][tile_x] == 0) {
+               boss_y_pos += TILE_SIZE / 4;
+    }
+    if (boss_y_pos >= game_map.getMap().max_y - NORMAL_FRAME_HEIGHT) {
+         boss_y_pos = 0;
+    } else {
+         boss_y_pos -= NORMAL_FRAME_HEIGHT;
+    }
+
+    boss->Set_X_pos(boss_x_pos);
+    boss->Set_Y_pos(boss_y_pos);
+    boss->set_clips();
+
     while (currenState != QUIT) {
         fps_timer.start();
 
@@ -303,10 +348,10 @@ int main(int argc, char* argv[])
 
             if (g_event.type == SDL_KEYDOWN && g_event.key.keysym.sym == SDLK_ESCAPE) {
                 if (currenState == PLAYING) {
-                    currenState = PAUSE; // Chuyển sang PAUSE khi đang chơi
+                    currenState = PAUSE;
                     elapsed_time = SDL_GetTicks() - start_time;
                 } else if (currenState == PAUSE) {
-                    currenState = PLAYING; // Thoát PAUSE để tiếp tục chơi
+                    currenState = PLAYING;
                     start_time = SDL_GetTicks() - elapsed_time;
                 }
             }
@@ -318,11 +363,11 @@ int main(int argc, char* argv[])
                     SDL_Point mousePoint = {mouseX, mouseY};
 
                     if (SDL_PointInRect(&mousePoint, &startRect)) {
-                        currenState = PLAYING; // Nhấp vào "Start Game"
-                        start_time = SDL_GetTicks(); // Đặt thời gian bắt đầu khi vào trạng thái PLAYING
+                        currenState = PLAYING;
+                        start_time = SDL_GetTicks();
                         elapsed_time = 0;
                     } else if (SDL_PointInRect(&mousePoint, &quitRect)) {
-                        currenState = QUIT; // Nhấp vào "Quit"
+                        currenState = QUIT;
                     }
                 }
             } else if (currenState == PLAYING) {
@@ -330,7 +375,6 @@ int main(int argc, char* argv[])
             } else if (currenState == WIN || currenState == LOSE) {
                 if (g_event.type == SDL_KEYDOWN && g_event.key.keysym.sym == SDLK_RETURN) {
                     currenState = MENU;
-                    // Reset lại game để chơi lại từ đầu
                     num_die = 0;
                     p_player.Reset();
                     game_map.resetMap();
@@ -338,6 +382,11 @@ int main(int argc, char* argv[])
                     thread_list.clear();
                     thread_list = MakeThreadList();
                     start_time = 0;
+                    delete boss;
+                    boss = new BossObj();
+                    boss->LoadImg("img//boss_walk_left.png", g_screen);
+                    boss->SetRect(boss_x_pos, boss_y_pos);
+                    boss->set_clips();
                 }
             } else if (currenState == PAUSE) {
                 if (g_event.type == SDL_MOUSEBUTTONDOWN && g_event.button.button == SDL_BUTTON_LEFT) {
@@ -346,10 +395,10 @@ int main(int argc, char* argv[])
                     SDL_Point mousePoint = {mouseX, mouseY};
 
                     if (SDL_PointInRect(&mousePoint, &continueRect)) {
-                        currenState = PLAYING; // Nhấp vào "Continue" để tiếp tục
-                        start_time = SDL_GetTicks() - elapsed_time; // Khôi phục thời gian
+                        currenState = PLAYING;
+                        start_time = SDL_GetTicks() - elapsed_time;
                     } else if (SDL_PointInRect(&mousePoint, &quitRect)) {
-                        currenState = QUIT; // Nhấp vào "Quit" để thoát
+                        currenState = QUIT;
                     }
                 }
             }
@@ -364,9 +413,9 @@ int main(int argc, char* argv[])
             SDL_RenderCopy(g_screen, startTexture, NULL, &startRect);
             SDL_RenderCopy(g_screen, quitTexture, NULL, &quitRect);
         } else if (currenState == PAUSE) {
-            g_menu.Render(g_screen, NULL); // Vẽ nền menu
-            SDL_RenderCopy(g_screen, continueTexture, NULL, &continueRect); // Hiển thị "Continue"
-            SDL_RenderCopy(g_screen, quitTexture, NULL, &quitRect); // Hiển thị "Quit"
+            g_menu.Render(g_screen, NULL);
+            SDL_RenderCopy(g_screen, continueTexture, NULL, &continueRect);
+            SDL_RenderCopy(g_screen, quitTexture, NULL, &quitRect);
         } else if (currenState == PLAYING) {
             g_background.Render(g_screen, NULL);
 
@@ -426,7 +475,7 @@ int main(int argc, char* argv[])
                 }
             }
 
-            if (p_player.get_winner_status()) {
+            if (p_player.get_winner_status() && (boss == NULL || boss->IsDead())) {
                 currenState = WIN;
             }
 
@@ -467,9 +516,45 @@ int main(int argc, char* argv[])
                 }
             }
 
+            if (boss != NULL) {
+                Map map_data = game_map.getMap();
+                boss->SetMapXY(map_data.start_x, map_data.start_y);
+                boss->SetPlayerPosition(p_player.Get_X_pos(), p_player.Get_Y_pos());
+                boss->DoPlayer(map_data);
+                boss->ImpMoveType(g_screen);
+                boss->Shown(g_screen);
+
+                vector<BulletObj*> player_bullets = p_player.get_bullet_list();
+                boss->HandlePlayerBullet(player_bullets, g_screen, g_sound_explosion);
+
+                // Only check collision if boss is not dead or death animation is not complete
+                if (!boss->IsDead()) {
+                    SDL_Rect playerRect = p_player.Get_Rect_Frame();
+                    SDL_Rect bossRect = boss->Get_Rect_Frame();
+
+                    bossRect.x = bossRect.x - map_data.start_x;
+                    bossRect.y = bossRect.y - map_data.start_y;
+
+                    if (SDL_HasIntersection(&playerRect, &bossRect)) {
+                        num_die++;
+                        if (num_die <= 3) {
+                            p_player.SetRect(0, 0);
+                            p_player.set_come_back_time(60);
+                            SDL_Delay(1000);
+                            pSurvival.Decrease();
+                            pSurvival.Render(g_screen);
+                        } else {
+                            currenState = LOSE;
+                            g_lose.Render(g_screen, NULL);
+                            break;
+                        }
+                     }
+                 }
+            }
+
             string str_time = "Time: ";
             Uint32 time_val = (SDL_GetTicks() - start_time) / 1000;
-            Uint32 val_time = 200 - time_val;
+            Uint32 val_time = 500 - time_val;
 
             if (val_time <= 0) {
                 currenState = LOSE;
@@ -506,7 +591,6 @@ int main(int argc, char* argv[])
         ThreadObj* p_thread = thread_list[i];
         if (p_thread != NULL) {
             p_thread->Free();
-            p_thread = NULL;
         }
     }
     thread_list.clear();
@@ -516,6 +600,10 @@ int main(int argc, char* argv[])
     SDL_DestroyTexture(continueTexture);
     TTF_CloseFont(menuFont);
 
+    if (boss != NULL) {
+        delete boss;
+        boss = NULL;
+    }
     close();
 
     return 0;

@@ -17,7 +17,6 @@ void GameMap::LoadMap(string name)
             int val;
             // kiem tra loi doc file
             if (!(file >> val)) {
-                cout << "Error reading map data at row: " << i << " col: " << j << endl;
                 file.close();
                 return;
             }
@@ -39,11 +38,6 @@ void GameMap::LoadMap(string name)
             }
         }
     }
-    // kiem tra file con du lieu rac
-    if (!file.eof()) {
-        cout << "File may not contain enough data";
-    }
-
 
     game_map.max_x = (game_map.max_x + 1) * TILE_SIZE;
     game_map.max_y = (game_map.max_y + 1) * TILE_SIZE;

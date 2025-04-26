@@ -1,5 +1,5 @@
 #ifndef THREAD_OBJ_H_
-#define THREAD_OBJ_H
+#define THREAD_OBJ_H_
 
 #include "BaseObj.h"
 #include "CommonFunc.h"
@@ -47,15 +47,15 @@ public:
         map_y = _map_y;
     }
 
-    void set_clips();
+    virtual void set_clips();
     bool LoadImg(string path, SDL_Renderer* screen);
-    SDL_Rect Get_Rect_Frame();
-    void Shown(SDL_Renderer* des);
+    virtual SDL_Rect Get_Rect_Frame();
+    virtual void Shown(SDL_Renderer* des);
 
     int Get_Width_frame() const {return width_frame;}
     int Get_Height_frame() const {return height_frame;}
 
-    void DoPlayer(Map& map_data);
+    virtual void DoPlayer(Map& map_data);
     void InitThread();
     void inMap(Map& map_data);
 
@@ -72,15 +72,15 @@ public:
         input_type.left = ipLeft;
     }
 
-    void ImpMoveType(SDL_Renderer* screen);
+    virtual void ImpMoveType(SDL_Renderer* screen);
 
     vector<BulletObj*> get_bullet_list() const {return bullet_list;}
     void set_bullet_list(const vector<BulletObj*>& _bullet_list) {bullet_list = _bullet_list;}
     void InitBullet(BulletObj* p_bullet, SDL_Renderer* screen);
-    void MakeBullet(SDL_Renderer* screen, const int& x_limit, const int& y_limit, Map& map_data);
+    virtual void MakeBullet(SDL_Renderer* screen, const int& x_limit, const int& y_limit, Map& map_data);
     void RemoveBullet(const int& index);
 
-private:
+protected:
     SDL_Rect frame_clip[THREAD_FRAME_NUM];
 
     float x_pos;

@@ -167,7 +167,7 @@ void MainObj::HandleInputAction(SDL_Event events, SDL_Renderer* screen, Mix_Chun
           // am thanh ban dan
           int ret = Mix_PlayChannel(-1, bullet_sound, 0);
           if(!ret) {
-            cout << "Can load bullet sound correctly!";
+            cout << Mix_GetError << endl;
           }
         }
     }

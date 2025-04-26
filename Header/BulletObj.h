@@ -9,7 +9,7 @@ class BulletObj : public BaseObj
 {
 public:
     BulletObj();
-    ~BulletObj();
+    virtual ~BulletObj();
 
     enum BulletDir
     {

@@ -49,6 +49,9 @@ public:
 
     void Reset();
 
+    int Get_X_pos() { return rect.x; }
+    int Get_Y_pos() { return rect.y; }
+
 private:
     vector<BulletObj*> p_bullet_list;
 
