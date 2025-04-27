@@ -354,17 +354,23 @@ void BossObj::HandlePlayerBullet(const std::vector<BulletObj*>& player_bullets, 
 
     for (auto bullet : player_bullets) {
         if (bullet->Get_Is_Move()) {
-            SDL_Rect bullet_rect = bullet->GetRect();
-            SDL_Rect boss_rect = Get_Rect_Frame();
+            SDL_Rect bullet_rect = bullet->GetRect(); // toạ độ trên màn hình
+            SDL_Rect boss_rect = Get_Rect_Frame(); // toạ độ thế giới
+
+            // Áp dụng map offset để chuyển boss_rect về toạ độ màn hình:
+            boss_rect.x -= map_x;
+            boss_rect.y -= map_y;
 
             if (SDL_HasIntersection(&bullet_rect, &boss_rect)) {
                 health--;
                 bullet->Set_Is_Move(false);
 
+                int world_x = bullet_rect.x + map_x;
+                int world_y = bullet_rect.y + map_y;
+                explosion_position.x = world_x - exp_boss.get_width_frame()  / 2;
+                explosion_position.y = world_y - exp_boss.get_height_frame() / 2;
                 show_explosion = true;
                 explosion_frame = 0;
-                explosion_position.x = bullet_rect.x - exp_boss.get_width_frame() * 0.5;
-                explosion_position.y = bullet_rect.y - exp_boss.get_height_frame() * 0.5;
 
                 if (explosion_sound != NULL) {
                     int ret = Mix_PlayChannel(-1, explosion_sound, 0);

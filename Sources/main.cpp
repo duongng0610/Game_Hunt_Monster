@@ -320,7 +320,7 @@ int main(int argc, char* argv[])
     boss->SetExplosionSound(g_sound_explosion);
     boss->set_clips();
 
-    int boss_x_pos = 1500;
+    int boss_x_pos = game_map.getMap().max_x-1000;
     int boss_y_pos = 0;
     int tile_x = boss_x_pos / TILE_SIZE;
 
@@ -385,8 +385,10 @@ int main(int argc, char* argv[])
                     delete boss;
                     boss = new BossObj();
                     boss->LoadImg("img//boss_walk_left.png", g_screen);
-                    boss->SetRect(boss_x_pos, boss_y_pos);
+                    boss->SetExplosionSound(g_sound_explosion);
                     boss->set_clips();
+                    boss->Set_X_pos(boss_x_pos);
+                    boss->Set_Y_pos(boss_y_pos);
                 }
             } else if (currenState == PAUSE) {
                 if (g_event.type == SDL_MOUSEBUTTONDOWN && g_event.button.button == SDL_BUTTON_LEFT) {
@@ -546,6 +548,8 @@ int main(int argc, char* argv[])
                         } else {
                             currenState = LOSE;
                             g_lose.Render(g_screen, NULL);
+                            SDL_RenderPresent(g_screen);
+                            SDL_Delay(2000);
                             break;
                         }
                      }
@@ -554,7 +558,7 @@ int main(int argc, char* argv[])
 
             string str_time = "Time: ";
             Uint32 time_val = (SDL_GetTicks() - start_time) / 1000;
-            Uint32 val_time = 500 - time_val;
+            Uint32 val_time = 300 - time_val;
 
             if (val_time <= 0) {
                 currenState = LOSE;

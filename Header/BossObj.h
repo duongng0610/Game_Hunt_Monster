@@ -20,8 +20,8 @@
 #define BOSS_HEALTH 10
 #define FAST_MOVE_DURATION 60
 #define NORMAL_MOVE_DURATION 300
-#define BOSS_NORMAL_SPEED 2
-#define BOSS_FAST_SPEED 4
+#define BOSS_NORMAL_SPEED 4
+#define BOSS_FAST_SPEED 6
 #define DEATH_ANIMATION_DELAY 10
 
 class BossObj : public ThreadObj
